@@ -7,14 +7,11 @@ import joblib
 import uvicorn
 import os
 import pickle
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse  
 from egg_features import extract_features_from_image
 
 app = FastAPI()
-# FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-# app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
+# CORS (allow frontend to call API)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,13 +22,15 @@ app.add_middleware(
 
 BASE_DIR = os.path.dirname(__file__)
 
+# Load model and preprocessing objects
 with open(os.path.join(BASE_DIR, "egg_model.pkl"), "rb") as f:
     model = pickle.load(f)
 
 scaler = model["scaler"]
 kmeans = model["kmeans"]
 feature_keys = model["feature_keys"]
-cluster_to_size = model["cluster_to_size"]
+
+# Hard-coded cluster → size mapping
 cluster_to_size = {0: "Small", 1: "Medium", 2: "Large"}
 
 @app.post("/predict")
@@ -43,16 +42,21 @@ async def predict(file: UploadFile = File(...)):
     if img is None:
         return {"error": "could not decode image"}
 
+    # Extract features
     feats = extract_features_from_image(img)
+
+    # Reorder features
     X = np.array([[feats[k] for k in feature_keys]])
+
+    # Scale and predict
     X_scaled = scaler.transform(X)
     cluster = int(kmeans.predict(X_scaled)[0])
     size = cluster_to_size.get(cluster, "Unknown")
+
     return {"cluster": cluster, "size": size}
 
-@app.get("/")
-def serve_home():
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+# Remove all frontend code entirely
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
