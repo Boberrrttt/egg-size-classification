@@ -51,7 +51,7 @@ function App() {
   };
 
   return (
-    <div className="flex justify-center flex-col items-center gap-10 p-10">
+    <div className="flex justify-center flex-col items-center gap-10 ">
       <Navbar />
 
       {/* Single Container */}
