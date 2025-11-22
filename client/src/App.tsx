@@ -103,7 +103,7 @@ function App() {
             </p>
           ) : result ? (
             <div className="text-center bg-green-100 text-green-800 px-6 py-3 rounded-lg font-medium text-lg">
-              This egg is classified as <strong>{result.size}</strong>.
+               Classification result: <strong>{result.size}</strong>.
             </div>
           ) : (
             <p className="text-gray-400 text-center font-primary">
