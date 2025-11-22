@@ -9,11 +9,11 @@ import os
 import pickle
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse  
-from .egg_features import extract_features_from_image
+from egg_features import extract_features_from_image
 
 app = FastAPI()
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+# app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 app.add_middleware(
     CORSMiddleware,
