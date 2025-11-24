@@ -12,20 +12,39 @@ def segment_egg(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.medianBlur(gray, 5)
+
     _, th = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
     if np.sum(th == 255) < np.sum(th == 0):
         mask = th
     else:
         mask = cv2.bitwise_not(th)
+
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+    white_pixels = np.sum(mask == 255)
+    if white_pixels < 500:
+        return None
+
     num_labels, labels_im = cv2.connectedComponents(mask)
     if num_labels <= 1:
         return mask
+
     areas = [(labels_im == i).sum() for i in range(1, num_labels)]
     largest_i = np.argmax(areas) + 1
     clean_mask = (labels_im == largest_i).astype('uint8') * 255
+
+    cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
+
+    if len(cnts) == 0:
+        return None
+
+    clean_mask = np.zeros_like(mask)
+    cv2.drawContours(clean_mask, [cnts[0]], -1, 255, -1)
+
     return clean_mask
 
 def extract_geometric_features(mask):
